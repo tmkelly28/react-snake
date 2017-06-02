@@ -18,4 +18,25 @@ body {
     margin: 1em;
     display: inline-block;
   }
+
+  .piece {
+    height: 10px;
+    width: 10px;
+    position: fixed;
+  }
+
+  .snake {
+    @extend .piece;
+    background-color: green;
+  }
+
+  .apple {
+    @extend .piece;
+    background-color: red;
+  }
+
+  .game {
+    width: 100vw;
+    height: 100vh;
+  }
 }

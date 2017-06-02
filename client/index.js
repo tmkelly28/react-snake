@@ -1,37 +1,142 @@
-import './index.scss';
+import './index.scss'
 
-import React from 'react';
-import ReactDOM from 'react-dom';
-import { Provider } from 'react-redux';
-import { Router, Route, browserHistory, IndexRoute } from 'react-router';
-import store from './store';
-import { Main, Login, Signup, UserHome } from './components';
-import { me } from './reducer/user';
+import React, {Component} from 'react'
+import {render} from 'react-dom'
 
-const whoAmI = store.dispatch(me());
+// UTILITY CLASSES //
 
-const requireLogin = (nextRouterState, replace, next) =>
-  whoAmI
-    .then(() => {
-      const { user } = store.getState();
-      if (!user.id) replace('/login');
-      next();
-    })
-    .catch(err => console.log(err));
+const rand = (min, max) => Math.floor(Math.random() * (max - min)) + min;
 
+class Vector {
 
-ReactDOM.render(
-  <Provider store={store}>
-    <Router history={browserHistory}>
-      <Route path="/" component={Main}>
-        <IndexRoute component={Login} />
-        <Route path="login" component={Login} />
-        <Route path="signup" component={Signup} />
-        <Route onEnter={requireLogin}>
-          <Route path="home" component={UserHome} />
-        </Route>
-      </Route>
-    </Router>
-  </Provider>,
-  document.getElementById('app')
-);
+  constructor (
+    left = rand(10, window.innerWidth - 10),
+    top = rand(10, window.innerWidth)
+  ) {
+    this.left = left
+    this.top = top
+  }
+
+  add (vect)  {
+    return new Vector(this.left + vect.left, this.top + vect.top)
+  }
+
+  collision (vect, scalar) {
+    return Math.abs(this.left - vect.left) <= scalar && Math.abs(this.top - vect.top) <= scalar
+  }
+
+  px () {
+    return {left: `${this.left}px`, top: `${this.top}px`}
+  }
+}
+
+// GAME PIECES //
+
+const Piece = className => ({style}) => <div className={className} style={style}></div>
+const Apple = Piece('apple')
+const Snake = Piece('snake')
+
+// CONSTANTS //
+
+const DIRECTIONS = ['L', 'U', 'R', 'D']
+const [L, U, R, D] = DIRECTIONS
+const DIR_MAP = {
+  L: new Vector(-3, 0),
+  U: new Vector(0, -3),
+  R: new Vector(3, 0),
+  D: new Vector(0, 3),
+}
+const DOMNODE = document.getElementById('app')
+
+const getInitialState = () => ({
+  snake: [new Vector(10, 10)],
+  apple: new Vector(),
+  direction: R,
+  alive: true,
+  board: {
+    x: {
+      min: 0,
+      max: window.innerWidth
+    },
+    y: {
+      min: 0,
+      max: window.innerHeight
+    }
+  }
+})
+
+const Game = class extends Component {
+
+  state = getInitialState()
+
+  componentDidMount () {
+    window.requestAnimationFrame(this.update)
+    window.addEventListener('keydown', this.changeDirection)
+  }
+
+  update = () => {
+    const {direction} = this.state
+    return this.move(DIR_MAP[direction])
+  }
+
+  move = (vect) => {
+    const {snake,apple,board} = this.state
+    const {x,y} = board
+    const [oldHead] = snake
+    const newHead = oldHead.add(vect)
+    const {left, top} = newHead
+
+    // collision with apple
+    if (newHead.collision(apple, 10)) {
+      this.setState({
+        snake: [newHead, ...snake],
+        apple: new Vector()
+      })
+    }
+    // collision with wall
+    else if (left <= x.min || left >= x.max || top <= y.min || top >= y.max) {
+      this.setState({alive: false})
+    }
+    // collsion with self
+    else if (snake.slice(1).find(v => newHead.collision(v, 0))) {
+      this.setState({alive: false})
+    }
+    else {
+      this.setState({snake: [newHead, ...snake.slice(0, -1)]})
+    }
+    window.requestAnimationFrame(this.update)
+  }
+
+  changeDirection = (evt) => {
+    switch (evt.keyCode) {
+      case 37: return this.setState({direction: L})
+      case 38: return this.setState({direction: U})
+      case 39: return this.setState({direction: R})
+      case 40: return this.setState({direction: D})
+    }
+  }
+
+  reset = () => this.setState(getInitialState())
+
+  render () {
+    const {snake, apple, alive} = this.state
+
+    if (alive) {
+      return (
+        <div className="game">
+          {snake.map((v, idx) => <Snake style={v.px()} key={idx}/>)}
+          <Apple style={apple.px()} />
+        </div>
+      )
+    } else {
+      return (
+        <div onClick={this.reset}>
+          <h1>You are dead</h1>
+        </div>
+      )
+    }
+  }
+
+}
+
+render(<Game />, DOMNODE)
