@@ -11,7 +11,7 @@ class Vector {
 
   constructor (
     left = rand(10, window.innerWidth - 10),
-    top = rand(10, window.innerWidth)
+    top = rand(10, window.innerHeight - 10)
   ) {
     this.left = left
     this.top = top
@@ -48,6 +48,8 @@ const DIR_MAP = {
 }
 const DOMNODE = document.getElementById('app')
 
+// INITIAL STATE //
+
 const getInitialState = () => ({
   snake: [new Vector(10, 10)],
   apple: new Vector(),
@@ -70,7 +72,7 @@ const Game = class extends Component {
   state = getInitialState()
 
   componentDidMount () {
-    window.requestAnimationFrame(this.update)
+    this.req = window.requestAnimationFrame(this.update)
     window.addEventListener('keydown', this.changeDirection)
   }
 
@@ -93,18 +95,21 @@ const Game = class extends Component {
         apple: new Vector()
       })
     }
-    // collision with wall
-    else if (left <= x.min || left >= x.max || top <= y.min || top >= y.max) {
+    // collision with wall or self
+    else if (
+      left <= x.min ||
+      left >= x.max ||
+      top <= y.min ||
+      top >= y.max ||
+      snake.slice(1).find(v => newHead.collision(v, 0))
+    ) {
       this.setState({alive: false})
-    }
-    // collsion with self
-    else if (snake.slice(1).find(v => newHead.collision(v, 0))) {
-      this.setState({alive: false})
+      return window.cancelAnimationFrame(this.req)
     }
     else {
       this.setState({snake: [newHead, ...snake.slice(0, -1)]})
     }
-    window.requestAnimationFrame(this.update)
+    this.req = window.requestAnimationFrame(this.update)
   }
 
   changeDirection = (evt) => {
@@ -136,7 +141,6 @@ const Game = class extends Component {
       )
     }
   }
-
 }
 
 render(<Game />, DOMNODE)

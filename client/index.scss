@@ -33,6 +33,7 @@ body {
   .apple {
     @extend .piece;
     background-color: red;
+    border-radius: 50%;
   }
 
   .game {
