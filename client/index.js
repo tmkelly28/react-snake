@@ -81,6 +81,11 @@ const Game = class extends Component {
     return this.move(DIR_MAP[direction])
   }
 
+  reset = () => {
+    this.setState(getInitialState())
+    this.componentDidMount()
+  }
+
   move = (vect) => {
     const {snake,apple,board} = this.state
     const {x,y} = board
@@ -120,8 +125,6 @@ const Game = class extends Component {
       case 40: return this.setState({direction: D})
     }
   }
-
-  reset = () => this.setState(getInitialState())
 
   render () {
     const {snake, apple, alive} = this.state
