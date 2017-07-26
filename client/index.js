@@ -5,10 +5,9 @@ import {render} from 'react-dom'
 
 // UTILITY CLASSES //
 
-const rand = (min, max) => Math.floor(Math.random() * (max - min)) + min;
+const rand = (min, max) => Math.floor(Math.random() * (max - min)) + min
 
 class Vector {
-
   constructor (
     left = rand(10, window.innerWidth - 10),
     top = rand(10, window.innerHeight - 10)
@@ -17,7 +16,7 @@ class Vector {
     this.top = top
   }
 
-  add (vect)  {
+  add (vect) {
     return new Vector(this.left + vect.left, this.top + vect.top)
   }
 
@@ -44,7 +43,7 @@ const DIR_MAP = {
   L: new Vector(-3, 0),
   U: new Vector(0, -3),
   R: new Vector(3, 0),
-  D: new Vector(0, 3),
+  D: new Vector(0, 3)
 }
 const DOMNODE = document.getElementById('app')
 
@@ -67,8 +66,7 @@ const getInitialState = () => ({
   }
 })
 
-const Game = class extends Component {
-
+class Game extends Component {
   state = getInitialState()
 
   componentDidMount () {
@@ -87,8 +85,8 @@ const Game = class extends Component {
   }
 
   move = (vect) => {
-    const {snake,apple,board} = this.state
-    const {x,y} = board
+    const {snake, apple, board} = this.state
+    const {x, y} = board
     const [oldHead] = snake
     const newHead = oldHead.add(vect)
     const {left, top} = newHead
@@ -99,9 +97,8 @@ const Game = class extends Component {
         snake: [newHead, ...snake],
         apple: new Vector()
       })
-    }
-    // collision with wall or self
-    else if (
+    } else if (
+      // collision with wall or self
       left <= x.min ||
       left >= x.max ||
       top <= y.min ||
@@ -110,8 +107,7 @@ const Game = class extends Component {
     ) {
       this.setState({alive: false})
       return window.cancelAnimationFrame(this.req)
-    }
-    else {
+    } else {
       this.setState({snake: [newHead, ...snake.slice(0, -1)]})
     }
     this.req = window.requestAnimationFrame(this.update)
